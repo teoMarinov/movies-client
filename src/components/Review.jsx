@@ -7,25 +7,31 @@ import axios from 'axios';
 
 
 export const Review = () => {
-    const { id } = useParams();
+    const { movieId } = useParams();
     const [movie, setMovie] = useState({});
 
     const [review, setReview] = useState('')
 
+    const getMovieData = () => {
+        api.get(`/api/v1/movies/${movieId}`)
+            .then(response => setMovie(response.data))
+    }
+
     const handlePost = () => {
         const data = {
-            "reviewBody": "testtest",
-            "imdbId": "tt8760708",
+            reviewBody: review,
+            imdbId: movieId,
         }
         api.post('/api/v1/reviews', data)
             .catch(err => console.log(err))
             .then(response => console.log(response))
+            .then(() => getMovieData())
+            .finally(() => console.log('1'))
     }
 
     useEffect(() => {
-        api.get(`/api/v1/movies/${id}`)
-            .then(response => setMovie(response.data))
-    }, [id])
+        getMovieData()
+    }, [movieId])
 
     return (
         <>
@@ -41,9 +47,9 @@ export const Review = () => {
                             </div>
                             <div className="movie-title">
                                 <input onChange={(e) => setReview(e.target.value)} />
+                                <button onClick={handlePost}>send</button>
                             </div>
                         </div>
-                        <button onClick={handlePost}>send</button>
                     </div>
                 </div>
             </Paper>

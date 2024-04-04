@@ -1,95 +1,100 @@
 /* eslint-disable react/prop-types */
-import {useEffect, useRef} from 'react';
+import { useState, useEffect } from 'react';
 import api from '../../api/axiosConfig';
-import {useParams} from 'react-router-dom';
-import {Container, Row, Col} from 'react-bootstrap';
+import { useParams } from 'react-router-dom';
+import { Container, Row, Col, Button } from 'react-bootstrap';
 import ReviewForm from '../reviewForm/ReviewForm';
+import { Input, InputBase } from '@mui/material';
 
 
-const Reviews = ({getMovieData,movie,reviews,setReviews}) => {
+const Reviews = () => {
 
-    const revText = useRef();
-    let params = useParams();
+    const params = useParams();
     const movieId = params.movieId;
+    const [newReview, setNewReview] = useState('');
+    const [movie, setMovie] = useState({});
 
-    useEffect(()=>{
-        getMovieData(movieId);
-    },[])
-
-    const addReview = async (e) =>{
-        e.preventDefault();
-
-        const rev = revText.current;
-
-        try
-        {
-            const response = await api.post("/api/v1/reviews",{reviewBody:rev.value,imdbId:movieId});
-
-            const updatedReviews = [...reviews, {body:rev.value}];
-    
-            rev.value = "";
-    
-            setReviews(updatedReviews);
-        }
-        catch(err)
-        {
-            console.error(err);
-        }
-        
-
-
-
+    const getMovie = () => {
+        api.get(`/api/v1/movies/${movieId}`)
+            .then(res => {
+                setMovie(res.data);
+            })
     }
 
-  return (
-    <Container>
-        <Row>
-            <Col><h3>Reviews</h3></Col>
-        </Row>
-        <Row className="mt-2">
-            <Col>
-                <img src={movie?.poster} alt="" />
-            </Col>
-            <Col>
-                {
-                    <>
-                        <Row>
-                            <Col>
-                                <ReviewForm handleSubmit={addReview} revText={revText} labelText = "Write a Review?" />  
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col>
-                                <hr />
-                            </Col>
-                        </Row>
-                    </>
-                }
-                {
-                    reviews?.map((r) => {
-                        return(
-                            <>
-                                <Row>
-                                    <Col>{r.body}</Col>
-                                </Row>
-                                <Row>
-                                    <Col>
-                                        <hr />
-                                    </Col>
-                                </Row>                                
-                            </>
-                        )
-                    })
-                }
-            </Col>
-        </Row>
-        <Row>
-            <Col>
-                <hr />
-            </Col>
-        </Row>        
-    </Container>
-  )
+    useEffect(() => {
+        getMovie();
+    }, [])
+
+    const addReview = async (e) => {
+        const data = {
+            "reviewBody": "testtest",
+            "imdbId": "tt8093700",
+        }
+        e.preventDefault();
+        try {
+
+            api.post('/api/v1/reviews', data)
+                .catch(err => console.log(err))
+                .then(response => console.log(response))
+                .then(() => getMovie())
+
+
+        }
+        catch (err) {
+            console.error(err);
+        }
+    }
+
+    return (
+        <Container>
+            <Row>
+                <Col><h3>Reviews</h3></Col>
+            </Row>
+            <Row className="mt-2">
+                <Col>
+                    <img src={movie?.poster} alt="" />
+                </Col>
+                <Col>
+                    {
+                        <>
+                            <Row>
+                                <Col>
+                                    <Input style={{ backgroundColor: "white", borderRadius: '40' }} onChange={(e) => setNewReview(e.target.value)} />
+                                    <Button onClick={addReview}>Submit</Button>
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col>
+                                    <hr />
+                                </Col>
+                            </Row>
+                        </>
+                    }
+                    {
+                        movie.reviewIds?.map((r) => {
+                            return (
+                                <>
+                                    <Row>
+                                        <Col>{r.body}</Col>
+                                    </Row>
+                                    <Row>
+                                        <Col>
+                                            <hr />
+                                        </Col>
+                                    </Row>
+                                </>
+                            )
+                        })
+                    }
+                </Col>
+            </Row>
+            <Row>
+                <Col>
+                    <hr />
+                </Col>
+            </Row>
+        </Container>
+    )
 }
 
 export default Reviews
